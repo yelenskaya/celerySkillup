@@ -8,8 +8,15 @@ authors = ["yelenskaya <v.yelenskaya@gmail.com>"]
 python = "^3.10"
 fastapi = "^0.89.1"
 uvicorn = "^0.20.0"
+boto3 = "^1.26.56"
+Pillow = "^9.4.0"
+python-multipart = "^0.0.5"
+celery = {extras = ["redis"], version = "^5.2.7"}
+python-dotenv = "^0.21.1"
 
 [tool.poetry.dev-dependencies]
+flake8 = "^6.0.0"
+flake8-import-order = "^0.18.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
