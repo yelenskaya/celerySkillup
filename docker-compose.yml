@@ -16,12 +16,31 @@ services:
     image: redis:alpine
     ports:
       - "6379:6379"
-  celery:
+  celery_resize:
     build: .
-    command: poetry run celery -A app.main.celery worker -l info
+    command: poetry run celery -A app.main.celery worker -l info -Q resize
     volumes:
       - ./:/usr/src/app/
     environment:
       - DEBUG=1
     depends_on:
       - redis
+  celery_convert:
+    build: .
+    command: poetry run celery -A app.main.celery worker -l info -Q convert
+    volumes:
+      - ./:/usr/src/app/
+    environment:
+      - DEBUG=1
+    depends_on:
+      - redis
+  celery_beat:
+    build: .
+    command: poetry run celery -A app.main.celery beat -l info
+    volumes:
+      - ./:/usr/src/app/
+    env_file:
+      - .env
+    depends_on:
+      - redis
+

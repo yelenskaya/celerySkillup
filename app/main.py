@@ -1,4 +1,5 @@
 from celery import current_app as current_celery_app
+from celery.schedules import crontab
 from fastapi import FastAPI
 
 from app.dependencies import get_settings
@@ -8,6 +9,17 @@ from app.routes import router
 def create_celery():
     celery_app = current_celery_app
     celery_app.config_from_object(get_settings(), namespace="CELERY")
+    celery_app.conf.task_routes = {
+        'app.tasks.process_image_resizing': {'queue': 'resize'},
+        'app.tasks.process_image_conversion': {'queue': 'convert'},
+        'app.tasks.batch_convert_images': {'queue': 'convert'}
+    }
+    celery_app.conf.beat_schedule = {
+        'batch_convert_images': {
+            'task': 'app.tasks.batch_convert_images',
+            'schedule': crontab(minute="*/1"),
+        },
+    }
     return celery_app
 
 

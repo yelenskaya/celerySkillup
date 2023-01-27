@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     RESULT_S3_BUCKET: str
     CELERY_BROKER_URL: str
     CELERY_RESULT_BACKEND: str
+    MAX_BATCH_IMAGES: int
+    BATCH_CONVERT_FORMAT: str
 
     class Config:
         env_file = '.env'
