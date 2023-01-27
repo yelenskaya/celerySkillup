@@ -1,12 +1,18 @@
+from enum import StrEnum
 from logging import getLogger
 from typing import BinaryIO
-from uuid import UUID
 
 from boto3.resources.base import ServiceResource
 from botocore.exceptions import ClientError
 from botocore.response import StreamingBody
+from pydantic import BaseModel
 
 logger = getLogger(__name__)
+
+
+class S3Prefix(StrEnum):
+    SINGLE = 'single/'
+    BATCH = 'batch/'
 
 
 class S3Error(Exception):
@@ -15,6 +21,10 @@ class S3Error(Exception):
 
 class S3FileNotFoundError(S3Error):
     pass
+
+
+class S3ObjectSummary(BaseModel):
+    key: str
 
 
 def get_file_object(resource: ServiceResource, bucket: str, object_key: str) -> StreamingBody:
@@ -36,9 +46,33 @@ def upload_file_object(resource: ServiceResource, bucket: str, file: BinaryIO, t
         raise S3Error
 
 
-def get_original_image_key(file_id: UUID, file_name: str) -> str:
-    return f'single/{file_id}/{file_name}'
+def get_object_summaries(
+        resource: ServiceResource, bucket: str, folder_name: str = None, max_number: int = None
+) -> list[S3ObjectSummary]:
+    try:
+        if folder_name:
+            summaries = resource.Bucket(bucket).objects.filter(Prefix=folder_name)
+        else:
+            summaries = resource.Bucket(bucket).objects.all()
+
+    except ClientError as e:
+        logger.error(f'Failed to get files from S3\n{e.response["Error"]}')
+        raise S3Error
+
+    if max_number:
+        summaries = summaries.limit(max_number)
+
+    return [S3ObjectSummary(key=summary.key) for summary in summaries]
 
 
-def get_resized_image_key(file_id: UUID, file_name: str) -> str:
-    return f'single/{file_id}/{file_name}'
+def delete_file(resource: ServiceResource, bucket: str, file_key: str):
+    try:
+        resource.Object(bucket, file_key).delete()
+    except ClientError as e:
+        logger.error(f'Failed to delete file {file_key} from S3\n{e.response["Error"]}')
+        raise S3Error
+
+
+def upload_image_result(resource: ServiceResource, bucket: str, transformed_image_path: str, s3_file_path: str):
+    with open(transformed_image_path, 'rb') as transformed_image:
+        upload_file_object(resource, bucket, transformed_image, s3_file_path)
