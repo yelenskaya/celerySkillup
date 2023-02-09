@@ -12,8 +12,10 @@ boto3 = "^1.26.56"
 Pillow = "^9.4.0"
 python-multipart = "^0.0.5"
 celery = {extras = ["redis"], version = "^5.2.7"}
-python-dotenv = "^0.21.1"
 gevent = "^22.10.2"
+flower = "^1.2.0"
+pydantic = {extras = ["dotenv"], version = "^1.10.5"}
+
 
 [tool.poetry.dev-dependencies]
 flake8 = "^6.0.0"

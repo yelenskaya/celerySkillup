@@ -48,7 +48,7 @@ def process_image_conversion(file_key: str, target_format: str, s3_prefix: S3Pre
     return converted_image.s3_path
 
 
-@shared_task()
+@shared_task(ignore_result=True, store_errors_even_if_ignored=True)
 def batch_convert_images():
     settings = get_settings()
 
