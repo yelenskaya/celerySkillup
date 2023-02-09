@@ -18,7 +18,7 @@ services:
       - "6379:6379"
   celery_resize:
     build: .
-    command: poetry run celery -A app.main.celery worker -l info -Q resize
+    command: poetry run celery -A app.main.celery worker -l info -Q resize -n resize
     volumes:
       - ./:/usr/src/app/
     environment:
@@ -27,7 +27,7 @@ services:
       - redis
   celery_convert:
     build: .
-    command: poetry run celery -A app.main.celery worker -l info -Q convert
+    command: poetry run celery -A app.main.celery worker -l info -Q convert -n convert
     volumes:
       - ./:/usr/src/app/
     environment:
@@ -43,4 +43,18 @@ services:
       - .env
     depends_on:
       - redis
+      - celery_convert
+  flower:
+    build: .
+    command: poetry run celery -A app.main.celery flower
+    volumes:
+      - ./:/usr/src/app/
+    env_file:
+      - .env
+    ports:
+      - 5557:5555
+    depends_on:
+      - redis
+      - celery_convert
+      - celery_resize
 

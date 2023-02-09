@@ -8,7 +8,10 @@ from app.routes import router
 
 def create_celery():
     celery_app = current_celery_app
-    celery_app.config_from_object(get_settings(), namespace="CELERY")
+    settings = get_settings()
+    celery_app.conf.broker_url = settings.CELERY_BROKER_URL
+    celery_app.conf.result_backend = settings.CELERY_RESULT_BACKEND
+
     celery_app.conf.task_routes = {
         'app.tasks.process_image_resizing': {'queue': 'resize'},
         'app.tasks.process_image_conversion': {'queue': 'convert'},
